@@ -1,0 +1,19 @@
+# Binaries
+bin/
+
+
+# Local Data (Ignored by Go tools)
+.data/
+data/
+
+# Dependencies
+vendor/
+internal/api/grpc/pb/
+github.com/
+
+# IDE
+.idea/
+.vscode/
+
+# Config
+.env

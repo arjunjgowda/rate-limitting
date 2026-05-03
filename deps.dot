@@ -1,0 +1,12 @@
+digraph G {
+  "github.com/arjunjgowda/rate-limitting/internal/api/common" -> {};
+  "github.com/arjunjgowda/rate-limitting/internal/api/grpc" -> {"github.com/arjunjgowda/rate-limitting/internal/api/grpc/handlers" "github.com/arjunjgowda/rate-limitting/internal/api/grpc/middleware" "github.com/arjunjgowda/rate-limitting/internal/service"};
+  "github.com/arjunjgowda/rate-limitting/internal/api/grpc/handlers" -> {"github.com/arjunjgowda/rate-limitting/internal/domain" "github.com/arjunjgowda/rate-limitting/internal/service" "github.com/arjunjgowda/rate-limitting/pkg/validator"};
+  "github.com/arjunjgowda/rate-limitting/internal/api/grpc/middleware" -> {"github.com/arjunjgowda/rate-limitting/internal/api/common"};
+  "github.com/arjunjgowda/rate-limitting/internal/api/http" -> {"github.com/arjunjgowda/rate-limitting/internal/api/http/handlers" "github.com/arjunjgowda/rate-limitting/internal/api/http/middleware" "github.com/arjunjgowda/rate-limitting/internal/service"};
+  "github.com/arjunjgowda/rate-limitting/internal/api/http/handlers" -> {"github.com/arjunjgowda/rate-limitting/internal/domain" "github.com/arjunjgowda/rate-limitting/internal/service" "github.com/arjunjgowda/rate-limitting/pkg/validator"};
+  "github.com/arjunjgowda/rate-limitting/internal/api/http/middleware" -> {"github.com/arjunjgowda/rate-limitting/internal/api/common"};
+  "github.com/arjunjgowda/rate-limitting/internal/domain" -> {"github.com/arjunjgowda/rate-limitting/pkg/validator"};
+  "github.com/arjunjgowda/rate-limitting/internal/service" -> {"github.com/arjunjgowda/rate-limitting/internal/domain"};
+  "github.com/arjunjgowda/rate-limitting/internal/store" -> {"github.com/arjunjgowda/rate-limitting/internal/domain" "github.com/arjunjgowda/rate-limitting/internal/service"};
+}

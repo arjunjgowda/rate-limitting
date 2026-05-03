@@ -1,0 +1,45 @@
+asyncapi: 3.1.0
+info:
+  title: Rate Limiter Events
+  version: 1.0.0
+  description: Documentation for events published and consumed by the Rate Limiting System.
+servers:
+  local:
+    host: "localhost:9092"
+    protocol: kafka
+    description: Local Kafka Broker
+channels:
+  system-design:
+    address: system-design
+    messages:
+      userCreated:
+        $ref: "#/components/messages/UserCreated"
+    description: Topic for user creation events.
+components:
+  messages:
+    UserCreated:
+      name: UserCreated
+      title: User Created Event
+      summary: Informational event published when a new user is successfully created.
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserCreatedPayload"
+  schemas:
+    UserCreatedPayload:
+      type: object
+      properties:
+        userID:
+          type: string
+          description: Unique identifier for the user.
+        username:
+          type: string
+          description: The username of the created user.
+        event:
+          type: string
+          enum:
+            - USER_CREATED
+          description: The type of event.
+      required:
+        - userID
+        - username
+        - event
