@@ -74,3 +74,30 @@ func (h *UserHandler) CreateUser(ctx *gofr.Context) (interface{}, error) {
 
 	return h.userService.CreateUser(ctx, &user)
 }
+
+func (h *UserHandler) Transfer(ctx *gofr.Context) (interface{}, error) {
+	var req struct {
+		FromID string  `json:"fromId"`
+		ToID   string  `json:"toId"`
+		Amount float64 `json:"amount"`
+	}
+
+	if err := ctx.Bind(&req); err != nil {
+		return nil, err
+	}
+
+	if !validator.IsUUID(req.FromID) || !validator.IsUUID(req.ToID) {
+		return nil, errors.New("invalid user id format: expected UUID")
+	}
+
+	if req.Amount <= 0 {
+		return nil, errors.New("amount must be greater than zero")
+	}
+
+	err := h.userService.Transfer(ctx, req.FromID, req.ToID, req.Amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{"status": "success", "message": "transfer completed"}, nil
+}

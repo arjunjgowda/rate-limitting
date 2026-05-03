@@ -46,4 +46,5 @@ func RegisterHandlers(app *gofr.App, svc service.Service, opts ...Option) {
 	app.GET("/check-balance", userHandler.CheckBalance)
 	app.GET("/user/{id}", userHandler.GetUserInfo)
 	app.POST("/user", userHandler.CreateUser)
+	app.POST("/transfer", userHandler.Transfer)
 }
