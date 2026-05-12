@@ -45,8 +45,9 @@ Both implementations inherit from a base structure that manages:
 **Philosophy**: "Refill only when asked."
 - **Logic**: When a request arrives, the system calculates how many tokens should have been added since the last request using the formula:
   `tokensToAdd = (currentTime - lastAccess) * refillRate / refillWindow`
-- **Pros**: Zero background CPU overhead. extremely high precision.
+- **Pros**: Extremely high precision. Minimal background CPU (only for periodic eviction).
 - **Cons**: Refill logic runs on the request path (though it's very fast math).
+- **Background Task**: Spawns one goroutine per shard to periodically evict inactive clients.
 
 ### 3. Fixed Interval Strategy (`tbfc`)
 **Philosophy**: "Predictable pulses."
@@ -57,6 +58,7 @@ Both implementations inherit from a base structure that manages:
 ### 4. Memory Management (Eviction)
 To prevent memory leaks from one-time "hit-and-run" clients, the system implements an **Idle Eviction Policy**:
 - If a client's bucket is full AND it hasn't been accessed for `2 * refillWindow`, it is purged from the map.
+- **Lazy Refill Implementation**: The eviction worker performs a "lazy refill calculation" during the scan to check if a bucket has refilled to its maximum capacity before purging.
 
 ---
 
