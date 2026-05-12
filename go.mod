@@ -4,6 +4,8 @@ go 1.26.1
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0
+	github.com/google/uuid v1.6.0
+	github.com/stretchr/testify v1.11.1
 	gofr.dev v1.56.3
 	google.golang.org/grpc v1.80.0
 	google.golang.org/protobuf v1.36.11
@@ -35,7 +37,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.14 // indirect
 	github.com/googleapis/gax-go/v2 v2.21.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
@@ -63,7 +64,6 @@ require (
 	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/segmentio/kafka-go v0.4.50 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/vektah/gqlparser/v2 v2.5.32 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
