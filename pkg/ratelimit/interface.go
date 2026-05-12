@@ -13,14 +13,18 @@ type RateLimitRequest struct {
 
 type RateLimitResult struct {
 	Allowed    bool
-	Count      int
-	Limit      int
-	Remaining  int
-	ResetTime  time.Time
+	Count      uint
+	Limit      uint
+	Remaining  uint
+	Window     time.Duration
+	Unit       string
+	FullAt     time.Time
 	RetryAfter time.Duration
 }
 
 type RateLimiter interface {
 	// Allow now uses the universal context.Context
 	Allow(ctx context.Context, req RateLimitRequest) (*RateLimitResult, error)
+	// Close cleans up any background resources (goroutines, tickers, etc.)
+	Close() error
 }

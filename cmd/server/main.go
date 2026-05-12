@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/arjunjgowda/rate-limitting/internal/api/grpc"
+	"context"
+
 	"github.com/arjunjgowda/rate-limitting/internal/api/http"
 	"github.com/arjunjgowda/rate-limitting/internal/migrations"
 	"github.com/arjunjgowda/rate-limitting/internal/service"
@@ -21,16 +22,20 @@ func main() {
 	userTopic := app.Config.GetOrDefault("KAFKA_USER_TOPIC", "system-design")
 	userService := service.NewUserService(userStore, txnManager, userTopic)
 
-	var rl ratelimit.RateLimiter
+	rl, err := ratelimit.NewRateLimiter(context.Background(), app.Config)
+
+	if err != nil {
+		panic(err)
+	}
 
 	// 4. Register Protocol Handlers
 	http.RegisterHandlers(app, userService,
 		http.WithRateLimiter(rl),
 	)
 
-	grpc.RegisterHandlers(app, userService,
-		grpc.WithRateLimiter(rl),
-	)
+	// grpc.RegisterHandlers(app, userService,
+	// 	grpc.WithRateLimiter(rl),
+	// )
 
 	// 5. Run Database Migrations
 	app.Migrate(migrations.All())

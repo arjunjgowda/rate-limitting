@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/arjunjgowda/rate-limitting/internal/domain"
+	"github.com/google/uuid"
 	"gofr.dev/pkg/gofr"
 )
 
@@ -39,6 +40,9 @@ func (s *UserService) GetUserInfo(ctx *gofr.Context, userID string) (*domain.Use
 }
 
 func (s *UserService) CreateUser(ctx *gofr.Context, user *domain.User) (string, error) {
+	// Generate UUID in Service Layer
+	user.ID = uuid.NewString()
+
 	// Trigger the Domain Validation
 	if err := user.Validate(); err != nil {
 		return "", err

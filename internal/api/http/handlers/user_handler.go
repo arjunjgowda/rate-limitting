@@ -7,6 +7,8 @@ import (
 	"github.com/arjunjgowda/rate-limitting/internal/service"
 	"github.com/arjunjgowda/rate-limitting/pkg/validator"
 	"gofr.dev/pkg/gofr"
+	"gofr.dev/pkg/gofr/http"
+	gofrHTTP "gofr.dev/pkg/gofr/http"
 )
 
 type UserHandler struct {
@@ -28,34 +30,58 @@ func (h *UserHandler) Login(ctx *gofr.Context) (interface{}, error) {
 	}
 
 	if req.Username == "" || req.Password == "" {
-		return nil, errors.New("username and password are required")
+		return nil, gofrHTTP.ErrorMissingParam{Params: []string{"username", "password"}}
 	}
 
-	return h.userService.Login(ctx, req.Username, req.Password)
+	res, err := h.userService.Login(ctx, req.Username, req.Password)
+	if err != nil {
+		if errors.Is(err, domain.ErrInvalidCredentials) {
+			return nil, gofrHTTP.ErrorInvalidParam{Params: []string{"username/password"}}
+		}
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *UserHandler) CheckBalance(ctx *gofr.Context) (interface{}, error) {
 	// Reading from query parameter ?id=...
 	userID := ctx.Param("id")
 	if userID == "" {
-		return nil, errors.New("user id is required")
+		return nil, gofrHTTP.ErrorMissingParam{Params: []string{"id"}}
 	}
 
 	if !validator.IsUUID(userID) {
-		return nil, errors.New("invalid user id format: expected UUID")
+		return nil, gofrHTTP.ErrorInvalidParam{Params: []string{"id"}}
 	}
 
-	return h.userService.GetBalance(ctx, userID)
+	res, err := h.userService.GetBalance(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, gofrHTTP.ErrorEntityNotFound{Name: "user", Value: userID}
+		}
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *UserHandler) GetUserInfo(ctx *gofr.Context) (interface{}, error) {
-	userID := ctx.Param("id")
+	userID := ctx.Request.PathParam("id")
 
 	if !validator.IsUUID(userID) {
-		return nil, errors.New("invalid user id format: expected UUID")
+		return nil, gofrHTTP.ErrorInvalidParam{Params: []string{"id"}}
 	}
 
-	return h.userService.GetUserInfo(ctx, userID)
+	res, err := h.userService.GetUserInfo(ctx, userID)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserNotFound) {
+			return nil, gofrHTTP.ErrorEntityNotFound{Name: "user", Value: userID}
+		}
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *UserHandler) CreateUser(ctx *gofr.Context) (interface{}, error) {
@@ -66,13 +92,21 @@ func (h *UserHandler) CreateUser(ctx *gofr.Context) (interface{}, error) {
 	}
 
 	if user.Username == "" {
-		return nil, errors.New("username is required")
+		return nil, gofrHTTP.ErrorMissingParam{Params: []string{"username"}}
 	}
 	if user.Email == "" {
-		return nil, errors.New("email is required")
+		return nil, gofrHTTP.ErrorMissingParam{Params: []string{"email"}}
 	}
 
-	return h.userService.CreateUser(ctx, &user)
+	res, err := h.userService.CreateUser(ctx, &user)
+	if err != nil {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
+			return nil, gofrHTTP.ErrorEntityAlreadyExist{}
+		}
+		return nil, err
+	}
+
+	return res, nil
 }
 
 func (h *UserHandler) Transfer(ctx *gofr.Context) (interface{}, error) {
@@ -87,11 +121,11 @@ func (h *UserHandler) Transfer(ctx *gofr.Context) (interface{}, error) {
 	}
 
 	if !validator.IsUUID(req.FromID) || !validator.IsUUID(req.ToID) {
-		return nil, errors.New("invalid user id format: expected UUID")
+		return nil, http.ErrorInvalidParam{Params: []string{"fromId", "toId"}}
 	}
 
 	if req.Amount <= 0 {
-		return nil, errors.New("amount must be greater than zero")
+		return nil, http.ErrorInvalidParam{Params: []string{"amount"}}
 	}
 
 	err := h.userService.Transfer(ctx, req.FromID, req.ToID, req.Amount)

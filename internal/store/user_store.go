@@ -3,6 +3,7 @@ package store
 import (
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/arjunjgowda/rate-limitting/internal/domain"
 	"github.com/arjunjgowda/rate-limitting/internal/service"
@@ -25,7 +26,7 @@ func (s *UserStore) GetBalance(ctx *gofr.Context, userID string) (float64, error
 	err := ctx.SQL.QueryRowContext(ctx, query, userID).Scan(&balance)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return 0, errors.New("user not found")
+			return 0, domain.ErrUserNotFound
 		}
 		return 0, err
 	}
@@ -40,7 +41,7 @@ func (s *UserStore) VerifyCredentials(ctx *gofr.Context, username, password stri
 	err := ctx.SQL.QueryRowContext(ctx, query, username, password).Scan(&userID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", errors.New("invalid credentials")
+			return "", domain.ErrInvalidCredentials
 		}
 		return "", err
 	}
@@ -55,7 +56,7 @@ func (s *UserStore) GetUser(ctx *gofr.Context, userID string) (*domain.User, err
 	err := ctx.SQL.QueryRowContext(ctx, query, userID).Scan(&u.ID, &u.Username, &u.Balance, &u.Email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("user not found")
+			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (s *UserStore) GetForUpdate(ctx *gofr.Context, userID string) (*domain.User
 	err := ctx.SQL.QueryRowContext(ctx, query, userID).Scan(&u.ID, &u.Balance)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, errors.New("user not found")
+			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
 	}
@@ -80,11 +81,15 @@ func (s *UserStore) GetForUpdate(ctx *gofr.Context, userID string) (*domain.User
 }
 
 func (s *UserStore) CreateUser(ctx *gofr.Context, user *domain.User) (string, error) {
-	query := "INSERT INTO users (username, password, balance, email) VALUES ($1, $2, $3, $4) RETURNING id"
+	query := "INSERT INTO users (id, username, password, balance, email) VALUES ($1, $2, $3, $4, $5) RETURNING id"
 
 	var id string
-	err := ctx.SQL.QueryRowContext(ctx, query, user.Username, "initial_pass", user.Balance, user.Email).Scan(&id)
+	err := ctx.SQL.QueryRowContext(ctx, query, user.ID, user.Username, "initial_pass", user.Balance, user.Email).Scan(&id)
 	if err != nil {
+		// Check for duplicate key violation (Postgres code 23505)
+		if strings.Contains(err.Error(), "duplicate key") || strings.Contains(err.Error(), "23505") {
+			return "", domain.ErrUserAlreadyExists
+		}
 		return "", err
 	}
 
