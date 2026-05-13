@@ -1,5 +1,5 @@
 # Build and run targets
-.PHONY: all build run test clean generate swagger refresh
+.PHONY: all build run test clean generate swagger refresh benchmark
 
 all: build
 
@@ -33,3 +33,15 @@ swagger:
 # Unified refresh target for all contracts
 refresh: generate swagger
 	@echo "All contracts refreshed (gRPC, Swagger)"
+
+# Benchmarking
+REQS ?= 100000000
+USERS ?= 1000000
+
+benchmark:
+	@echo "Running all benchmark variations (${USERS} users, ${REQS} requests each)..."
+	@go run examples/comparison/main.go --algo lazy --test-mode 1 --run-id lazy-m1 --users ${USERS} --requests ${REQS}
+	@go run examples/comparison/main.go --algo fixed --test-mode 1 --run-id fixed-m1 --users ${USERS} --requests ${REQS}
+	@go run examples/comparison/main.go --algo lazy --test-mode 2 --run-id lazy-m2 --users ${USERS} --requests ${REQS}
+	@go run examples/comparison/main.go --algo fixed --test-mode 2 --run-id fixed-m2 --users ${USERS} --requests ${REQS}
+	@echo "Benchmarks complete. Results stored in examples/comparison/results.txt"
